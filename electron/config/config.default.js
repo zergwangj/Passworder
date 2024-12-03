@@ -23,13 +23,13 @@ module.exports = (appInfo) => {
    * 主窗口
    */
   config.windowsOption = {
-    title: 'EE框架',
+    title: '密码管理大师',
     width: 980,
     height: 650,
     minWidth: 400,
     minHeight: 300,
     webPreferences: {
-      //webSecurity: false,
+      // webSecurity: false,
       contextIsolation: false, // false -> 可在渲染进程中使用electron的api，true->需要bridge.js(contextBridge)
       nodeIntegration: true,
       //preload: path.join(appInfo.baseDir, 'preload', 'bridge.js'),
@@ -149,7 +149,7 @@ module.exports = (appInfo) => {
     },
     tray: {
       enable: true,
-      title: 'EE程序',
+      title: '密码管理大师',
       icon: '/public/images/tray.png'
     },
     security: {

@@ -1,7 +1,7 @@
 {
-  "productName": "ee",
-  "appId": "com.electron.ee",
-  "copyright": "© 2023 哆啦好梦 Technology Co., Ltd.",
+  "productName": "Passworder",
+  "appId": "com.electron.passworder",
+  "copyright": "© 2024 星辰虫叔",
   "directories": {
     "output": "out"
   },
@@ -26,7 +26,7 @@
     "installerHeaderIcon": "build/icons/icon.ico",
     "createDesktopShortcut": true,
     "createStartMenuShortcut": true,
-    "shortcutName": "EE框架"
+    "shortcutName": "密码管理大师"
   },
   "publish": [
     {
