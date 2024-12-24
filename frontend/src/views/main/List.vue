@@ -35,7 +35,18 @@ onUnmounted(() => {
 
 function init() {
   getAllPassword();
-  getSetting();
+  getSettingSync();
+  // console.log("isLockscreen: ", isLockscreen.value);
+  if (isLockscreen.value) {
+    if (null != refLockscreen.value) {
+      refLockscreen.value.lock();
+      refLockscreen.value.setLockscreenPassword(lockscreenPassword.value);
+    }
+  } else {
+    if (null != refLockscreen.value) {
+      refLockscreen.value.unlock();
+    }
+  }
 }
 
 function getAllPassword() {
@@ -44,7 +55,7 @@ function getAllPassword() {
       console.log("没有数据");
       return false;
     }
-    console.log(res.all_list);
+    // console.log(res.all_list);
     tableData.value = res.all_list;
     Reflect.set(tableData.value, "showPassword", false);
   });
@@ -104,7 +115,7 @@ const showEditPassword = (row) => {
 };
 
 const saveEditPassword = () => {
-  console.log(editPasswordForm.value);
+  // console.log(editPasswordForm.value);
   ipc
     .invoke(ipcApiRoute.updatePassword, JSON.stringify(editPasswordForm.value))
     .then((res) => {
@@ -127,7 +138,7 @@ const rowToDelete = ref(null);
 
 const showDeleteConfirmDialog = (row) => {
   rowToDelete.value = row;
-  console.log(rowToDelete.value);
+  // console.log(rowToDelete.value);
   showDeleteConfirmDialogVisible.value = true;
 };
 
@@ -331,14 +342,29 @@ const getSetting = () => {
       return false;
     }
     settingForm.value = res.result;
-    console.log(res.result);
+    // console.log(res.result);
     isLockscreen.value = res.result.is_lockscreen;
     lockscreenPassword.value = res.result.lockscreen_password;
   });
 };
 
+function getSettingSync() {
+  const res = ipc.sendSync(ipcApiRoute.getSetting);
+  if (res.code == -1) {
+    console.log("获取设置失败");
+    return false;
+  }
+  settingForm.value = res.result;
+  // console.log(res.result);
+  isLockscreen.value = res.result.is_lockscreen;
+  lockscreenPassword.value = res.result.lockscreen_password;
+}
+
 const saveSetting = () => {
-  console.log(settingForm.value);
+  // console.log(settingForm.value);
+  if (settingForm.value.is_lockscreen == false) {
+    settingForm.value.lockscreen_password = "";
+  }
   ipc
     .invoke(ipcApiRoute.setSetting, JSON.stringify(settingForm.value))
     .then((res) => {
@@ -353,12 +379,13 @@ const saveSetting = () => {
         type: "success",
         message: "更新成功",
       });
+      getSetting();
     });
 };
 
 const timerLockscreen = ref(null);
-// const TIMEOUT = 1000 * 60 * 5; // 5分钟
-const TIMEOUT = 1000 * 10;
+const TIMEOUT = 1000 * 60 * 5; // 5分钟
+// const TIMEOUT = 1000 * 10;
 const refLockscreen = ref(null);
 const isLockscreen = ref(false);
 const lockscreenPassword = ref("");
@@ -372,8 +399,12 @@ const setupLockscreen = () => {
     clearTimeout(timerLockscreen.value);
     timerLockscreen.value = setTimeout(function () {
       getSetting();
-      refLockscreen.value.lock();
-      refLockscreen.value.setLockscreenPassword(lockscreenPassword.value);
+      if (isLockscreen.value) {
+        refLockscreen.value.lock();
+        refLockscreen.value.setLockscreenPassword(lockscreenPassword.value);
+      } else {
+        refLockscreen.value.unlock();
+      }
     }, TIMEOUT);
   };
 
@@ -384,7 +415,9 @@ const setupLockscreen = () => {
 
 const clearLockscreen = () => {
   clearTimeout(timerLockscreen.value);
-  refLockscreen.value.unlock();
+  if (null != refLockscreen.value) {
+    refLockscreen.value.unlock();
+  }
 };
 </script>
 
@@ -560,7 +593,7 @@ const clearLockscreen = () => {
             <el-form-item label="备注" prop="remark">
               <el-input
                 type="textarea"
-                rows="8"
+                :rows="8"
                 v-model="addPasswordForm.remark"
               ></el-input>
             </el-form-item>
@@ -604,7 +637,7 @@ const clearLockscreen = () => {
             <el-form-item label="备注" prop="remark">
               <el-input
                 type="textarea"
-                rows="8"
+                :rows="8"
                 v-model="editPasswordForm.remark"
               ></el-input>
             </el-form-item>
@@ -615,18 +648,20 @@ const clearLockscreen = () => {
           </template>
         </el-drawer>
         <!-- 删除确认弹框 -->
-        <el-dialog title="确认删除" v-model="showDeleteConfirmDialogVisible">
-          <div style="text-align: left">
-            <el-icon style="color: orange; margin-right: 5px">
-              <Warning />
-            </el-icon>
-            确定要删除这条记录吗？
-          </div>
+        <el-dialog
+          v-model="showDeleteConfirmDialogVisible"
+          :show-close="false"
+          width="300px"
+        >
+          <h3>确定删除记录？</h3>
+          确定后，记录无法被找回
           <template #footer>
-            <el-button @click="showDeleteConfirmDialogVisible = false"
+            <el-button link @click="showDeleteConfirmDialogVisible = false"
               >取消</el-button
             >
-            <el-button type="primary" @click="deletePassword">确定</el-button>
+            <el-button type="danger" link @click="deletePassword"
+              >确定</el-button
+            >
           </template>
         </el-dialog>
         <!-- 设置弹框 -->
@@ -647,6 +682,7 @@ const clearLockscreen = () => {
               <el-input
                 placeholder="锁屏密码"
                 show-password
+                :disabled="!settingForm.is_lockscreen"
                 v-model="settingForm.lockscreen_password"
               ></el-input>
             </el-form-item>
@@ -716,6 +752,13 @@ const clearLockscreen = () => {
   border-top: 1px solid #ccc;
 }
 :deep(.el-drawer .el-drawer__footer .el-button) {
+  min-width: 100px;
+}
+:deep(.el-dialog .el-dialog__footer) {
+  padding-top: 50px;
+  text-align: center;
+}
+:deep(.el-dialog .el-dialog__footer .el-button) {
   min-width: 100px;
 }
 

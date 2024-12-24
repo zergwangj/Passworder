@@ -1,10 +1,10 @@
 <script setup>
 import { onMounted, defineExpose, ref, nextTick } from "vue";
-import { ElMessage, ElMessageBox } from "element-plus";
 
 const isLocked = ref(false);
 const lockscreenPassword = ref(""); // 锁屏密码（数据库中保存的，用于校验）
 const inputPassword = ref(""); // 输入的密码
+const showPasswordErrorDialogVisible = ref(false);
 
 const refInput = ref(null);
 
@@ -32,15 +32,13 @@ const setLockscreenPassword = (password) => {
 };
 
 const checkLockscreenPassword = () => {
+  if (inputPassword.value === "") {
+    return;
+  }
   if (inputPassword.value === lockscreenPassword.value) {
     unlock();
   } else {
-    ElMessage({
-      type: "error",
-      message: "密码错误",
-      duration: 10000,
-      customClass: "myclass",
-    });
+    showPasswordErrorDialogVisible.value = true;
   }
   inputPassword.value = "";
 };
@@ -53,23 +51,47 @@ defineExpose({
 </script>
 
 <template>
-  <div v-if="isLocked" class="lock-screen">
-    <div class="lock-screen-content">
-      <h1>已锁屏</h1>
-      <el-form @submit.prevent>
-        <el-form-item>
-          <el-input
-            ref="refInput"
-            placeholder="输入锁屏密码"
-            show-password
-            v-model="inputPassword"
-            @keyup.enter="checkLockscreenPassword"
-            suffix-icon="Right"
-            style="width: 300px"
+  <div>
+    <div v-if="isLocked" class="lock-screen">
+      <div class="lock-screen-content">
+        <h1>已锁屏</h1>
+        <el-form @submit.prevent>
+          <el-form-item>
+            <el-input
+              ref="refInput"
+              placeholder="输入锁屏密码"
+              show-password
+              v-model="inputPassword"
+              @keyup.enter="checkLockscreenPassword"
+              style="width: 300px"
+            >
+              <template #suffix>
+                <el-icon
+                  class="custom-icon-cursor"
+                  @click="checkLockscreenPassword"
+                  ><right
+                /></el-icon>
+              </template>
+            </el-input>
+          </el-form-item>
+        </el-form>
+      </div>
+      <!-- 密码错误弹框 -->
+      <el-dialog
+        v-model="showPasswordErrorDialogVisible"
+        :show-close="false"
+        width="300px"
+      >
+        <h3>密码不正确，请再输入一次。</h3>
+        <template #footer>
+          <el-button
+            type="primary"
+            link
+            @click="showPasswordErrorDialogVisible = false"
+            >确定</el-button
           >
-          </el-input>
-        </el-form-item>
-      </el-form>
+        </template>
+      </el-dialog>
     </div>
   </div>
 </template>
@@ -99,5 +121,9 @@ defineExpose({
 
 .myclass {
   z-index: 999999;
+}
+
+:deep(.custom-icon-cursor) {
+  cursor: pointer;
 }
 </style>

@@ -81,7 +81,7 @@ class PassworddbService extends Service {
     await this.checkAndCreateTableSqlite(table);
 
     try {
-      const insert = this.passwordSqliteDB.db.prepare(`INSERT OR REPLACE INTO ${table} (id, website, username, password, remark) VALUES (@id, @website, @username, @password, @remark)`);
+      const insert = this.passwordSqliteDB.db.prepare(`INSERT OR REPLACE INTO ${table} (website, username, password, remark) VALUES (@website, @username, @password, @remark)`);
       for (let password of passwords) {
         insert.run(password);
       }
