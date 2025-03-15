@@ -36,7 +36,7 @@
     "build-lp-64": "electron-builder --config=./electron/config/builder.json -l=pacman --x64",
     "test": "set DEBUG=* && electron . --env=local"
   },
-  "repository": "https://github.com/dromara/electron-egg.git",
+  "repository": "https://github.com/zergwangj/Passworder.git",
   "keywords": [
     "Electron",
     "electron-egg",
@@ -53,6 +53,7 @@
     "electron-rebuild": "^3.2.9",
     "eslint": "^5.13.0",
     "eslint-plugin-prettier": "^3.0.1",
+    "icon-gen": "^5.0.0",
     "nodemon": "^2.0.16"
   },
   "dependencies": {

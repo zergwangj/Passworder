@@ -394,6 +394,20 @@ const lockscreenPassword = ref("");
 //   refLockscreen.value.lock();
 // };
 
+const manualLockScreen = () => {
+  getSettingSync();
+  if (isLockscreen.value) {
+    refLockscreen.value.lock();
+    refLockscreen.value.setLockscreenPassword(lockscreenPassword.value);
+  } else {
+    refLockscreen.value.unlock();
+    ElMessage({
+      type: "warning",
+      message: "请设置锁屏密码",
+    });
+  }
+};
+
 const setupLockscreen = () => {
   const resetTimer = () => {
     clearTimeout(timerLockscreen.value);
@@ -461,6 +475,9 @@ const clearLockscreen = () => {
             <el-button text icon="Setting" @click="showSetting">
               设置
             </el-button>
+            <el-button text icon="Lock" @click="manualLockScreen"
+              >锁屏</el-button
+            >
           </div>
           <div class="layout-right-container">
             <el-input
@@ -751,13 +768,16 @@ const clearLockscreen = () => {
   text-align: left;
   border-top: 1px solid #ccc;
 }
+
 :deep(.el-drawer .el-drawer__footer .el-button) {
   min-width: 100px;
 }
+
 :deep(.el-dialog .el-dialog__footer) {
   padding-top: 50px;
   text-align: center;
 }
+
 :deep(.el-dialog .el-dialog__footer .el-button) {
   min-width: 100px;
 }

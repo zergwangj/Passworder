@@ -88,6 +88,7 @@ defineExpose({
             type="primary"
             link
             @click="showPasswordErrorDialogVisible = false"
+            @keydown.esc="showPasswordErrorDialogVisible = false"
             >确定</el-button
           >
         </template>
